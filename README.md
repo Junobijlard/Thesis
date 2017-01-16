@@ -1,2 +1,0 @@
-# Thesis
-Thesis Juno Bijlard
