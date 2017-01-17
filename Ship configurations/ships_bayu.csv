@@ -1,51 +1,29 @@
-Name,Arrival Time,TEU
-Liparus ,0.23,1553
-Stealth Ship ,0.52,1356
-USS Pequod  ,0.76,1566
-USS Echo ,0.87,2571
-Black Swan ,1.21,2393
-HMS Nereid  ,1.48,1635
-SS Crescent Star,1.88,2949
-Pequod ,2.01,2934
-HMS Torrin ,2.33,2050
-Academic Vladislav Volkov ,2.51,1754
-Saracen ,2.59,1132
-Q Boat ,2.79,1956
-USS Starfish ,3.48,1950
-USS Poseidon ,3.64,1168
-Elizabeth Dane ,3.47,2387
-Flying Dutchman ,3.89,1781
-USS Thunderfish ,4.23,2850
-HMS Defiant ,4.63,2629
-St. Georges ,4.63,2371
-HMS Lydia ,5.19,2746
-Ghost ,5.33,2889
-Aquanaut 3  ,5.62,1050
-The Henrietta  ,5.8,2048
-Altair ,6.09,2385
-Gloria N ,6.36,1965
-USS Davies ,6.27,1597
-USS Haynes ,6.7,2465
-Proteus  ,7.23,1378
-USS Sawfish ,7.24,1853
-U-571  ,7.3,2391
-Black Swan ,7.79,1061
-SS Minnow Johnson  ,7.99,2986
-Sea Star ,8.16,2190
-Rachel ,8.04,1893
-Batavia Queen ,8.76,2265
-Poseidon ,9.11,1484
-SS Claridon ,9.29,2645
-Amindra ,9.89,2278
-Pequod ,10.15,2260
-Arabella ,9.98,2468
-Rights-of-Man ,10.61,1416
-Glencairn ,10.46,1553
-Batavia Queen ,10.58,2539
-HMS Interceptor ,10.9,1339
-SS Princess Irene,11.27,2500
-Nautilus ,11.29,2638
-Pequod ,11.27,2328
-USS Montana ,12.0,2702
-Flying Dutchman ,12.14,2783
-HMS Shag at Sea  ,12.56,1925
+,Name,TEU,Arrival Time
+0,"Fatima II, KM",665,0.0
+1,"Meratus Kendari I, KM",713,0.000694444444444553
+2,"Damai Sejahtera I, KM",750,0.9027777777777779
+3,"Vertikal, KM",463,0.9305555555555557
+4,"Tanto Rejeki, KM",894,1.138888888888889
+5,"Meratus Benoa, KM",429,1.1493055555555558
+6,"Meratus Sibolga, KM",318,1.1597222222222225
+7,"Daya Perintis, KM",392,1.4722222222222225
+8,"Meratus Palembang, KM",368,1.7638888888888893
+9,"Tanto Berkat, KM",807,1.8048611111111115
+10,"Kuala Mas, KM",543,2.554166666666667
+11,"Armada Papua, KM",778,2.6375000000000006
+12,"Pahala, KM",438,2.638194444444445
+13,"Sinar Mataram, KM",408,2.6388888888888897
+14,"Jinyunhe, MV",468,2.748611111111112
+15,"Meratus Spirit-2, MV",327,2.804166666666667
+16,"Meratus Minahasa, KM",753,2.9708333333333337
+17,"Barito Borneo, KM",366,2.971527777777778
+18,"Mentari Sejahtera, KM",495,3.1375000000000006
+19,"Tanto Sakti II, KM",703,3.302083333333334
+20,"Meratus Ultima 2, KM",677,3.302777777777778
+21,"Tanto Hawari, KM",567,3.3034722222222226
+22,"Meratus Tangguh-2, KM",867,4.011111111111111
+23,"CRYSTAL JADE EKS JUMMETOR ,KM",542,4.052777777777778
+24,"BINTANG PERMAI , KM",553,4.053472222222222
+25,"MENTAYA RIVER , KM",779,4.261111111111111
+26,"MADISON, KM",751,4.71875
+27,"UNI - PATRIOT , MV",424,5.259722222222222

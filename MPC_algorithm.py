@@ -23,6 +23,9 @@ from Initializations import *
 from itertools import permutations
 from itertools import product
 from itertools import chain
+from predictCostClass import predictCostClass
+from copy import deepcopy
+
 
 """
 Parameters:
@@ -36,7 +39,7 @@ time_horizon = 4
 max_time_horizon = 8
 operations_cost_hour = 200
 terminal = terminals[-1]
-collect_training_data = True
+collect_training_data = False
 training_data_file_name = 'training_data.csv'
 training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
 
@@ -106,7 +109,7 @@ def calculatePossibleQCSequences(berths = terminal.berth_positions, QCs = termin
             sequence = dict(zip(list(range(berths)),possibility))
             QClist.append(sequence)
     return QClist    
-
+"""
 def predictParameters(S, v):
     x_temp = [x_k[-1]]
     y_temp = [y_k[-1]]
@@ -122,7 +125,6 @@ def predictParameters(S, v):
         lastZ = z_temp[-1]
         lastV = v_temp[-1]
         lastJ = j_temp[-1]
-        #voor alle boten
         j = min(lastX, key = lastX.get)
         for b in berths:
             if b == j:
@@ -154,14 +156,29 @@ def costPrediction(S,v):
             else:
                 J+=(z[k][b]-z[k-1][b])*(v[k-1][b]*operations_cost+terminal.berths[b].waiting_cost)
     return J
+    """
+
+def predictCost(S,v):
+    lastX_copy = deepcopy(x_k[-1])
+    costDict = {}
+    costClass = 0
+    for counter, ship in enumerate(S):
+        j = min(lastX_copy, key = lastX_copy.get)
+        starting_time = max(lastX_copy[j], ship.arrival_time)
+        costClass = predictCostClass(ship, v[j], starting_time, operations_cost)
+        costDict[counter]= costClass.total_cost
+        lastX_copy[j] = costClass.finishing_time
+    total_cost = sum(costDict.values())
+    return total_cost
+        
             
-def findUandV(QCList): #vinden van kosten gaat niet goed
+def findUandV(QCList): 
     S, time_horizon = findSetOfShipsToBeBerthed()
     S_combinations = [possibility for possibility in permutations(S, time_horizon)]
     costList = list()
     for S_possibility in S_combinations:
         for QC_possibility in QCList:
-            costList.append((S_possibility, QC_possibility, costPrediction(S_possibility, QC_possibility)))
+            costList.append((S_possibility, QC_possibility, predictCost(S_possibility, QC_possibility)))
     minimum_cost = min(costList, key = lambda t: t[2])
     u = minimum_cost[0][0]
     v = minimum_cost[1]
