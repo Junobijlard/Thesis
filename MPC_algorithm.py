@@ -49,6 +49,8 @@ training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
 operations_cost = 24*operations_cost_hour
 v_k = [dict(zip(berths, [0]*len(berths)))]
 u_k = [Ship(0, "starting ship", 0, 0)]
+u_k[0].starting_time = 0
+u_k[0].finishing_time = 0
 costList = list()
 findInputTime = 0
 inputTime = 0
@@ -73,7 +75,8 @@ def updateParameters(u,v):
     lastZ = z_k[-1]
     lastV = v_k[-1]
     j = min(lastX, key = lastX.get)
-    terminal.berths[j].finishing_time = lastX[j]
+    u.starting_time = lastX[j]
+    #terminal.berths[j].finishing_time = lastX[j]
     for b in berths:
         if b==j:
             z[b]=max(lastX[b], u.arrival_time)
@@ -89,6 +92,8 @@ def updateParameters(u,v):
     u.assigned = True
     u.allocated_berth = j
     terminal.berths[j] = u
+    for berth in berths:
+        terminal.berths[berth].finishing_time = x[berth]
     berthDict[j].append(u)
     return j,x,y,z
 
@@ -109,57 +114,10 @@ def calculatePossibleQCSequences(berths = terminal.berth_positions, QCs = termin
             sequence = dict(zip(list(range(berths)),possibility))
             QClist.append(sequence)
     return QClist    
-"""
-def predictParameters(S, v):
-    x_temp = [x_k[-1]]
-    y_temp = [y_k[-1]]
-    z_temp = [z_k[-1]]
-    v_temp = [v_k[-1]]
-    j_temp = [j_k[-1]]
-    for ship in S:
-        x = {}
-        y = {}
-        z = {}
-        lastX = x_temp[-1]
-        lastY = y_temp[-1]
-        lastZ = z_temp[-1]
-        lastV = v_temp[-1]
-        lastJ = j_temp[-1]
-        j = min(lastX, key = lastX.get)
-        for b in berths:
-            if b == j:
-                z[b] = max(lastX[b], ship.arrival_time)
-                y[b] = ship.operation_time
-                x[b] = z[b]+y[b]/v[b]
-            else:
-                if lastX[j]>lastZ[b]:
-                    z[b] = lastX[j]
-                else:
-                    z[b] = lastZ[b]
-                y[b] = lastY[b]-(z[b]-lastZ[b])*lastV[b]
-                x[b] = z[b]+y[b]/v[b]
-        x_temp.append(x)
-        y_temp.append(y)
-        z_temp.append(z)
-        v_temp.append(v)
-        j_temp.append(j)
-    return x_temp, y_temp, z_temp, v_temp, j_temp
-
-def costPrediction(S,v):
-    x, y, z, v, j = predictParameters(S,v)
-    J = 0
-    for k in range(1,len(j)):
-        for b in berths:
-            if b == j[k]:
-                J+=(x[k-1][b]-z[k-1][b])*v[k-1][b]*operations_cost
-                J+=max(x[k-1][b]-S[k-1].arrival_time,0)*S[k-1].waiting_cost
-            else:
-                J+=(z[k][b]-z[k-1][b])*(v[k-1][b]*operations_cost+terminal.berths[b].waiting_cost)
-    return J
-    """
 
 def predictCost(S,v):
     lastX_copy = deepcopy(x_k[-1])
+    lastY_copy = deepcopy(y_k[-1])
     costDict = {}
     costClass = 0
     for counter, ship in enumerate(S):
@@ -193,6 +151,7 @@ def findUandV(QCList):
     return u,v    
     
 def realCost(u):
+    
     J = 0
     for b in berths:
         if b == j_k[-1]:
@@ -201,6 +160,7 @@ def realCost(u):
         else:
             J+=(z_k[-1][b]-z_k[-2][b])*(v_k[-2][b]*operations_cost+terminal.berths[b].waiting_cost)
     return J
+     
     
 def writeTrainingDataCSV(filename = training_data_file_name, path = training_data_path, training_data = training_data, max_time_horizon = max_time_horizon):
     columns = []
