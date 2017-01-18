@@ -13,7 +13,7 @@ from Ship import Ship
 from ContainerTerminal import ContainerTerminal
 
 #Delfzijl containter terminal toegevoegd
-
+k_k = list()
 x_k = list()
 y_k = list()
 z_k = list()
@@ -74,4 +74,5 @@ x_k.append(x)
 y_k.append(y)
 z_k.append(z)
 j_k.append(0)
+k_k.append(0)
 berthDict = createBerthDictionary()

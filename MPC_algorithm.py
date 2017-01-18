@@ -31,8 +31,8 @@ from copy import deepcopy
 Parameters:
     time_horizon
     operations_cost_hour
-    collect training data?
-    which terminal to berth at?
+    collect training data: yes or no?
+    which terminal to use for the berthing process [-1] = paper terminal?
     Load file and call main()
 """
 time_horizon = 4
@@ -75,6 +75,7 @@ def updateParameters(u,v):
     lastZ = z_k[-1]
     lastV = v_k[-1]
     j = min(lastX, key = lastX.get)
+    k = min(lastX.values())
     u.starting_time = lastX[j]
     #terminal.berths[j].finishing_time = lastX[j]
     for b in berths:
@@ -95,7 +96,7 @@ def updateParameters(u,v):
     for berth in berths:
         terminal.berths[berth].finishing_time = x[berth]
     berthDict[j].append(u)
-    return j,x,y,z
+    return k,j,x,y,z
 
 def findSetOfShipsToBeBerthed(time_horizon = time_horizon):
     ships_unassigned = [ship for ship in ships if ship.assigned == False]
@@ -150,8 +151,24 @@ def findUandV(QCList):
         training_data.append(training_data_to_append)
     return u,v    
     
-def realCost(u):
+def realCost():
+    #ship1:
+    for ship in u_k:
+        for i in range(len(k_k)):
+            if k_k[i] > ship.starting_time and k_k[i]<=ship.finishing_time:
+                time = k_k[i]-k_k[i-1]
+                berth = ship.allocated_berth
+                ship.operating_cost+=time*v_k[i][berth]*operations_cost
+        ship.waiting_cost = (ship.finishing_time - ship.arrival_time)*ship.waiting_cost
+        
+    total_operating_cost = sum([ship.operating_cost for ship in u_k])
+    total_waiting_cost = sum([ship.waiting_cost for ship in u_k])
+    total_cost = total_operating_cost + total_waiting_cost
+    return total_cost
+        
+        
     
+"""    
     J = 0
     for b in berths:
         if b == j_k[-1]:
@@ -160,7 +177,7 @@ def realCost(u):
         else:
             J+=(z_k[-1][b]-z_k[-2][b])*(v_k[-2][b]*operations_cost+terminal.berths[b].waiting_cost)
     return J
-     
+"""     
     
 def writeTrainingDataCSV(filename = training_data_file_name, path = training_data_path, training_data = training_data, max_time_horizon = max_time_horizon):
     columns = []
@@ -220,7 +237,7 @@ def main():
         v_k.append(v)
         inputTime += (time.time()-inputStartTime)
         parameterStartTime = time.time()
-        j,x,y,z = updateParameters(u,v)
+        k,j,x,y,z = updateParameters(u,v)
         global x_k
         x_k.append(x)
         global y_k
@@ -229,10 +246,12 @@ def main():
         z_k.append(z)
         global j_k
         j_k.append(j)
+        global k_k
+        k_k.append(k)
         updateTime += (time.time()-parameterStartTime)
-        totalCost += realCost(u)
         if sum(ship.assigned == True for ship in ships)==len(ships):
             condition=False
+    total_cost = realCost()
     totalTime = time.time()-starttime
     print("Total cost: \t", totalCost)
     print("Calculation time: ", totalTime)
@@ -242,7 +261,7 @@ def main():
     times = {"totalTime": totalTime, "sequencesTime": sequencesTime, "inputTime": inputTime, "updateTime": updateTime }
     if collect_training_data == True:
         writeTrainingDataCSV()
-    return times
+    return total_cost
     
     
 

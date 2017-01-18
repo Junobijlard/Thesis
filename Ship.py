@@ -71,6 +71,8 @@ class Ship(object):
         self.starting_time = None
         self.finishing_time = None
         self.training_values = [self.arrival_time, self.numberOfTEUs, self.waiting_cost]
+        self.operating_cost = 0
+        self.waiting_cost = 0
         
     def __str__(self):
         return "Name:" +self.name
