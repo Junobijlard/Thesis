@@ -49,6 +49,9 @@ else:
     TEU_UB = 10000
     TEU_LB = 5000
 
+m = m/24
+v = v/24
+
 names = pd.read_csv(pathOfNames)
 pathOfShipFile = '{0}{1}'.format(path, nameOfFile)
 
@@ -63,7 +66,7 @@ class Ship(object):
     def __init__(self, ship_number, name, arrival_time, TEU, waiting_cost = 3600):
         self.ship_number = ship_number
         self.name = name
-        self.arrival_time = round(arrival_time,2)
+        self.arrival_time = arrival_time
         self.numberOfTEUs = TEU
         operation = TEU*3/60/24
         self.operation_time = round(operation,2)
@@ -94,17 +97,12 @@ class Ship(object):
         else:
             print("Berth Number: ", self.allocated_berth)
 
-def arrivalTime(arrival_number):
+def arrivalTime(oldTime):
     mu = math.log(m**2/math.sqrt(v+m**2))
     sigma = math.sqrt(math.log(v/(m**2)+1))
-    i = 0
-    randomValue = 0
-    while i <= arrival_number:
-        randomValue+= np.random.lognormal(mu,sigma)
-        i+=1
-    randomValue = randomValue/24
-    randomValue = round(randomValue, 2)
-    return randomValue
+    interArrivalTime = np.random.lognormal(mu,sigma)
+    arrivalTime = oldTime+interArrivalTime
+    return arrivalTime
     
 def waitingCost():
     cost = random.randint(Waiting_LB, Waiting_UB)
@@ -120,10 +118,12 @@ def pickName():
 
 def createShips():
     ships = list()
+    oldArrivalTime = 0
     for i in range(number_of_ships):
         name = pickName()
         TEUs = numberOfTEUs()
-        arrival_time = arrivalTime(i)
+        arrival_time = arrivalTime(oldArrivalTime)
+        oldArrivalTime = arrival_time
         waiting_cost = waitingCost()
         ships.append(Ship(i, name, arrival_time, TEUs, waiting_cost))
     return ships

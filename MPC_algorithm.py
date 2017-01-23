@@ -24,14 +24,14 @@ from copy import deepcopy
 from Ship import Ship
 from ContainerTerminal import ContainerTerminal
 
-time_horizon = 4
-max_time_horizon = 8
+time_horizon = 5
+max_time_horizon = 5
 operations_cost_hour = 200
-collect_training_data = False
+collect_training_data = True
 training_data_file_name = 'training_data.csv'
 training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
 ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/'
-shipsFilename = 'ships_bayu.csv'
+shipsFilename = 'set_of_ships_5.csv'
 #==============================================================================
 # Don't change!
 #==============================================================================
@@ -85,6 +85,7 @@ terminal = terminals[-1]
 berths = makeList(terminal.berth_positions)
 j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
 berthDict = {berth:[] for berth in berths}
+
              
 def updateParameters(u,v):
     """
@@ -250,6 +251,8 @@ def main():
     QCList = calculatePossibleQCSequences()
     sequencesTime = time.time()-sequencesStartTime
     condition = True
+    global training_data
+    training_data.clear()
     while condition == True:
         inputStartTime = time.time()
         u,v = findUandV(QCList)
@@ -282,3 +285,11 @@ def main():
     if collect_training_data == True:
         writeTrainingDataCSV()
     return total_cost
+    
+def calculateTrainingData():
+    for i in range(1,11):
+        filename = 'set_of_ships_{0}.csv'.format(i)
+        ships = createShips(filename)
+        j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
+        berthDict = {berth:[] for berth in berths}
+        main()

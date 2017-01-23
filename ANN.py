@@ -82,4 +82,5 @@ y_pred = classifier.predict(X_test)
 
 
 
-
+import pandas as pd
+dataframe = pd.read_csv('/Users/juno/Desktop/Scriptie/Python/Training data/training_data.csv')
