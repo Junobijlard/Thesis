@@ -36,7 +36,7 @@ containerTerminalsDF = read_data("ContainerTerminal")
 dummy_ship = Ship(0, "dummy", 0,0,0)
 
 for i in range(len(shipsDF)):
-    ship = Ship(i, shipsDF['Name'][i], shipsDF['Arrival Time'][i], shipsDF['TEU'][i])
+    ship = Ship(i, shipsDF['Name'][i], shipsDF['Arrival Time'][i], shipsDF['TEU'][i], shipsDF['Waiting Cost'][i])
     ships.append(ship)
 
 for i in range(len(containerTerminalsDF)):

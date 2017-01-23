@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec 29 10:03:34 2016
+Created on Fri Jan 20 18:19:40 2017
 
 @author: juno
 """
@@ -15,49 +15,77 @@ import time
 import pandas as pd
 import math
 import numpy as np
-import importlib
-import Initializations
 import matplotlib.pyplot as plt
-importlib.reload(Initializations)
-from Initializations import *
 from itertools import permutations
 from itertools import product
 from itertools import chain
 from predictCostClass import predictCostClass
 from copy import deepcopy
+from Ship import Ship
+from ContainerTerminal import ContainerTerminal
 
-
-"""
-Parameters:
-    time_horizon
-    operations_cost_hour
-    collect training data: yes or no?
-    which terminal to use for the berthing process [-1] = paper terminal?
-    Load file and call main()
-"""
 time_horizon = 4
 max_time_horizon = 8
 operations_cost_hour = 200
-terminal = terminals[-1]
 collect_training_data = False
 training_data_file_name = 'training_data.csv'
 training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
-
-"""
-    Don't change anything from here:
-"""
+ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/'
+shipsFilename = 'ships_bayu.csv'
+#==============================================================================
+# Don't change!
+#==============================================================================
 operations_cost = 24*operations_cost_hour
-v_k = [dict(zip(berths, [0]*len(berths)))]
-u_k = [Ship(0, "starting ship", 0, 0)]
-u_k[0].starting_time = 0
-u_k[0].finishing_time = 0
 costList = list()
 findInputTime = 0
 inputTime = 0
 timeSequences = 0
 training_data = []
 
+def makeList(number):
+    listname = list()
+    for i in range(number):
+        listname.append(i)
+    return listname
 
+def createJKUVXYZ(berths):
+    j = [0]
+    k = [0]
+    u = [Ship(0, "starting ship", 0, 0)]
+    v = [dict(zip(berths, [0]*len(berths)))]
+    x = [dict(zip(berths, [0]*len(berths)))]
+    y = [dict(zip(berths, [0]*len(berths)))]
+    z = [dict(zip(berths, [0]*len(berths)))]
+    return j,k,u,v,x,y,z
+    
+def createShips(filename):
+    total_path = ships_data_folder+filename
+    shipsDF = pd.read_csv(total_path)
+    ships = list()
+    for i in range(len(shipsDF)):
+        name = shipsDF['Name'][i]
+        arrival_time = shipsDF['Arrival Time'][i]
+        teu = shipsDF['TEU'][i]
+        waiting_cost = shipsDF['Waiting Cost'][i]
+        ship = Ship(i, name, arrival_time, teu, waiting_cost)
+        ships.append(ship)
+    return ships
+
+def createTerminals(filename = 0):
+    terminals = list()
+    ship = Ship(0,'dummy', 0,0,0)
+    if filename == 0:
+        terminal = ContainerTerminal('Groningen', 'small', 2, 7, ship)
+    terminals.append(terminal)
+    return terminals
+    
+ships = createShips(shipsFilename)
+terminals = createTerminals()
+terminal = terminals[-1]
+berths = makeList(terminal.berth_positions)
+j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
+berthDict = {berth:[] for berth in berths}
+             
 def updateParameters(u,v):
     """
     j: earliest available berth
@@ -121,6 +149,12 @@ def predictCost(S,v):
     lastY_copy = deepcopy(y_k[-1])
     costDict = {}
     costClass = 0
+    current_time = min(lastX_copy.values())
+    j = min(lastX_copy, key = lastX_copy.get)
+    for berth in berths:
+        if berth != j:
+            remaining_operating_time = (lastX_copy[berth]-current_time)*v_k[-1][berth]/v[berth]
+            lastX_copy[berth] = remaining_operating_time+current_time
     for counter, ship in enumerate(S):
         j = min(lastX_copy, key = lastX_copy.get)
         starting_time = max(lastX_copy[j], ship.arrival_time)
@@ -152,33 +186,19 @@ def findUandV(QCList):
     return u,v    
     
 def realCost():
-    #ship1:
     for ship in u_k:
         for i in range(len(k_k)):
             if k_k[i] > ship.starting_time and k_k[i]<=ship.finishing_time:
                 time = k_k[i]-k_k[i-1]
                 berth = ship.allocated_berth
-                ship.operating_cost+=time*v_k[i][berth]*operations_cost
-        ship.waiting_cost = (ship.finishing_time - ship.arrival_time)*ship.waiting_cost
+                ship.cost_for_operation+=time*v_k[i][berth]*operations_cost
+        ship.cost_for_waiting = (ship.finishing_time - ship.arrival_time)*ship.waiting_cost
         
-    total_operating_cost = sum([ship.operating_cost for ship in u_k])
-    total_waiting_cost = sum([ship.waiting_cost for ship in u_k])
+    total_operating_cost = sum([ship.cost_for_operation for ship in u_k])
+    total_waiting_cost = sum([ship.cost_for_waiting for ship in u_k])
     total_cost = total_operating_cost + total_waiting_cost
     return total_cost
-        
-        
-    
-"""    
-    J = 0
-    for b in berths:
-        if b == j_k[-1]:
-            J+=(x_k[-1][b]-z_k[-1][b])*v_k[-1][b]*operations_cost
-            J+=max(x_k[-1][b]-u.arrival_time,0)*u.waiting_cost
-        else:
-            J+=(z_k[-1][b]-z_k[-2][b])*(v_k[-2][b]*operations_cost+terminal.berths[b].waiting_cost)
-    return J
-"""     
-    
+
 def writeTrainingDataCSV(filename = training_data_file_name, path = training_data_path, training_data = training_data, max_time_horizon = max_time_horizon):
     columns = []
     for berth in berths:
@@ -262,7 +282,3 @@ def main():
     if collect_training_data == True:
         writeTrainingDataCSV()
     return total_cost
-    
-    
-
-    
