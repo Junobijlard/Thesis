@@ -18,69 +18,83 @@ Created on Thu Jan 19 12:22:20 2017
 # from sklearn.preprocess import StandardScaler
 # sc = StandardScaler()
 
-
-#==============================================================================
-# Parameters
-#==============================================================================
-"""
-training_data = 'Training_data.csv'
-training_data_path = '/Users/juno/Desktop/Scriptie/Python/Training data/'
-
+from os import chdir
+chdir('/Users/juno/Desktop/Scriptie/Python')
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.cross_validation import train_test_split
 from Ship import Ship
-
-os.chdir('/Users/juno/Desktop/Scriptie/Python')
-
+import keras
+from keras.models import Sequential 
+from keras.layers import Dense 
+from sklearn.metrics import accuracy_score
+#==============================================================================
+# PARAMETERS
+#==============================================================================
+training_data = 'Training_data.csv'
+training_data_path = '/Users/juno/Desktop/Scriptie/Python/Training data/'
+number_of_ships = 5
+number_of_QC = 7
 #importing the dataset
 dataset = pd.read_csv(training_data_path+training_data)
-#X = 
-#y = 
+X = dataset.drop(['U', 'V 0', 'V 1'], axis = 1).values
+y = dataset.iloc[:,15:17].values #dropped value of 2nd berth
 
 # OneHotEncode y
-# delete 1 row to avoid dummy variable trap: y = y[:,1:]
+onehotencoderY = OneHotEncoder(categorical_features=[0,1])
+y = onehotencoderY.fit_transform(y).toarray()
 
+# dummy variable trap?
+#y = y[:,1:]
 #traintestsplit: from sklearn.model_selection import train_test_split
-
+num_nodes = int(np.mean([X.shape[-1], y.shape[-1]]))
+num_layers = 3
 #feature scaling
-from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
-X_train = sc.fit_transform(X_train)
-X_test = sc.transform(X_test)"""
+X = sc.fit_transform(X)
+
+#split data into test and training set
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = 0.2, random_state = 0)
 
 #Building the ANN
-import keras
-from keras.models import Sequential #initialize model
-from keras.layers import Dense #add layers
-
 #Initializing the model
-classifier = Sequential()
 
-#Adding the input layer and the first hidden layer
-#output_dim = number of nodes in output layer. rule of thumb: average of number of nodes in input layer and number of nodes in output layer
-# init: random weights for initializing
-# relu = rect activation function? 
-# input_dim = number of input variables in input layer
-layer1 = Dense(output_dim = 17, init= 'uniform', activation = 'relu', input_dim = 26) 
-classifier.add(layer1)
-layer2 = Dense(output_dim = 17, init = 'uniform', activation = 'relu')
-classifier.add(layer2)
-outputlayer = Dense(output_dim = 3, init = 'uniform', activation = 'softmax')
-classifier.add(outputlayer)
+def buildANN(X_train, X_test, y_train, y_test, num_layers = 3):
+    network = Sequential()
+    input_layer = Dense(output_dim = num_nodes, init = 'uniform', activation = 'relu', input_dim = X.shape[-1])
+    network.add(input_layer)
+    for i in range(num_layers-2):
+        layer = Dense(output_dim = num_nodes, init = 'uniform', activation = 'relu')
+        network.add(layer)
+    output_layer = Dense(output_dim = y.shape[-1], init = 'uniform', activation = 'softmax')
+    network.add(output_layer)
+    network.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+    network.fit(X_train,
+            y_train,
+            batch_size = 10,
+            nb_epoch = 100,
+            validation_data = (X_test, y_test))
+    return network
 
-
-classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
-
-#Fitting the model to the dataset
-classifier.fit(X_train, y_train, batch_size = 10, nb_epoch = 100)
 
 y_pred = classifier.predict(X_test)
 
-
-
-import pandas as pd
-dataframe = pd.read_csv('/Users/juno/Desktop/Scriptie/Python/Training data/training_data.csv')
+def findAccuracy(y_pred, number_of_ships = number_of_ships):
+    ship_pred = y_pred[:,:number_of_ships]
+    ship_pred = [i.argmax() for i in ship_pred]
+    ship_test = y_test[:,:number_of_ships]
+    ship_test = [i.argmax() for i in ship_test]
+    ship_accuracy = accuracy_score(ship_test, ship_pred)
+    
+    QC_pred = y_pred[:,number_of_ships:]
+    QC_pred = [i.argmax() for i in QC_pred]
+    QC_test = y_test[:, number_of_ships:]
+    QC_test = [i.argmax() for i in QC_test]
+    QC_accuracy = accuracy_score(QC_test, QC_pred)
+    
+    return ship_accuracy, QC_accuracy
+    
