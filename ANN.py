@@ -32,58 +32,70 @@ import keras
 from keras.models import Sequential 
 from keras.layers import Dense 
 from sklearn.metrics import accuracy_score
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.decomposition import PCA
 #==============================================================================
 # PARAMETERS
 #==============================================================================
-training_data = 'Training_data.csv'
+training_data = 'Training_data(small).csv'
 training_data_path = '/Users/juno/Desktop/Scriptie/Python/Training data/'
 number_of_ships = 5
-number_of_QC = 7
+num_hidden_layers = 3
+num_nodes = 20
+test_size = 0.2
 #importing the dataset
-dataset = pd.read_csv(training_data_path+training_data)
-X = dataset.drop(['U', 'V 0', 'V 1'], axis = 1).values
-y = dataset.iloc[:,15:17].values #dropped value of 2nd berth
 
-# OneHotEncode y
-onehotencoderY = OneHotEncoder(categorical_features=[0,1])
-y = onehotencoderY.fit_transform(y).toarray()
+def dimensionalityReduction(test_size = test_size):
+    dataset = pd.read_csv(training_data_path+training_data)
+    allVandU = [i for i in dataset.columns if 'V' in i or 'U' in i]
+    allShipsandX = [i for i in dataset.columns if 'Ship' in i or 'X' in i]
+    X = dataset.drop(allVandU, axis = 1).values
+    y = dataset.drop(allShipsandX, axis = 1)
+    y = y.drop('V 1', axis = 1).values #deze regel verwijderen en .values bij regel hierboven toevoegen
+    onehotencoder = OneHotEncoder()
+    y = onehotencoder.fit_transform(y).toarray()
+    standardscaler = StandardScaler()
+    X = standardscaler.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = test_size, random_state = 0)
+    pca = PCA(n_components = 2)
+    X_train = pca.fit_transform(X_train)
+    X_test = pca.transform(X_test)
+    explained_variance = pca.explained_variance_ratio_
+    return X_train, X_test, y_train, y_test
+    
+    
+def preprocessData(test_size = test_size):
+    dataset = pd.read_csv(training_data_path+training_data)
+    allVandU = [i for i in dataset.columns if 'V' in i or 'U' in i]
+    allShipsandX = [i for i in dataset.columns if 'Ship' in i or 'X' in i]
+    X = dataset.drop(allVandU, axis = 1).values
+    y = dataset.drop(allShipsandX, axis = 1)
+    y = y.drop('V 1', axis = 1).values #deze regel verwijderen en .values bij regel hierboven toevoegen
+    onehotencoder = OneHotEncoder()
+    y = onehotencoder.fit_transform(y).toarray() #Transforms y to binary array
+    standardscaler = StandardScaler()
+    X = standardscaler.fit_transform(X) #Scales values of X 
+    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = test_size, random_state = 0)
+    return X_train, X_test, y_train, y_test
 
-# dummy variable trap?
-#y = y[:,1:]
-#traintestsplit: from sklearn.model_selection import train_test_split
-num_nodes = int(np.mean([X.shape[-1], y.shape[-1]]))
-num_layers = 3
-#feature scaling
-sc = StandardScaler()
-X = sc.fit_transform(X)
 
-#split data into test and training set
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = 0.2, random_state = 0)
-
-#Building the ANN
-#Initializing the model
-
-def buildANN(X_train, X_test, y_train, y_test, num_layers = 3):
+def buildANN(X_train, X_test, y_train, y_test,num_hidden_layers =num_hidden_layers, num_nodes = num_nodes):
     network = Sequential()
-    input_layer = Dense(output_dim = num_nodes, init = 'uniform', activation = 'relu', input_dim = X.shape[-1])
+    input_layer = Dense(output_dim = num_nodes, init = 'uniform', activation = 'relu', input_dim = X_train.shape[-1])
     network.add(input_layer)
-    for i in range(num_layers-2):
+    for i in range(num_hidden_layers):
         layer = Dense(output_dim = num_nodes, init = 'uniform', activation = 'relu')
         network.add(layer)
-    output_layer = Dense(output_dim = y.shape[-1], init = 'uniform', activation = 'softmax')
+    output_layer = Dense(output_dim = y_train.shape[-1], init = 'uniform', activation = 'softmax')
     network.add(output_layer)
     network.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
     network.fit(X_train,
             y_train,
             batch_size = 10,
-            nb_epoch = 100,
-            validation_data = (X_test, y_test))
+            nb_epoch = 100)
     return network
 
-
-y_pred = classifier.predict(X_test)
-
-def findAccuracy(y_pred, number_of_ships = number_of_ships):
+def findAccuracy(y_pred, y_test, number_of_ships = number_of_ships):
     ship_pred = y_pred[:,:number_of_ships]
     ship_pred = [i.argmax() for i in ship_pred]
     ship_test = y_test[:,:number_of_ships]
@@ -98,3 +110,9 @@ def findAccuracy(y_pred, number_of_ships = number_of_ships):
     
     return ship_accuracy, QC_accuracy
     
+def main():
+    X_train, X_test, y_train, y_test = preprocessData()
+    ANN = buildANN(X_train, X_test, y_train, y_test)
+    y_pred = ANN.predict(X_test)
+    ship_accuracy, QC_accuracy = findAccuracy(y_pred, y_test)
+    return ship_accuracy, QC_accuracy

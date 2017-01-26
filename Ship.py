@@ -26,6 +26,8 @@ nameOfFile = 'ships_bayu.csv'
 
 path = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/'
 pathOfNames = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Ship_names.csv'
+waiting_cost_mean = 3600
+waiting_cost_stdev = 300
 
 #==============================================================================
 # CODE
@@ -67,17 +69,17 @@ class Ship(object):
         self.ship_number = ship_number
         self.name = name
         self.arrival_time = arrival_time
-        self.numberOfTEUs = TEU
+        self.TEU = TEU
         operation = TEU*3/60/24
-        self.operation_time = round(operation,2)
+        self.operating_time = round(operation,2)
         self.waiting_cost = waiting_cost
         self.allocated_berth = "-1"
         self.assigned = False
         self.starting_time = 0
         self.finishing_time = 0
-        self.training_values = [self.arrival_time, self.numberOfTEUs, self.waiting_cost]
-        self.cost_for_operation = 0
-        self.cost_for_waiting = 0
+        self.training_values = [self.arrival_time, self.TEU, self.waiting_cost]
+        self.total_operating_cost = 0
+        self.total_waiting_cost = 0
         
     def __str__(self):
         return "Name:" +self.name
@@ -90,7 +92,7 @@ class Ship(object):
         print('Ship number: ', self.ship_number)
         print('Name: ', self.name)
         print('Arrival time: ', self.arrival_time)
-        print('TEU: ', self.numberOfTEUs)
+        print('TEU: ', self.TEU)
         print('Operations time (QC days): ', self.operation_time)
         if self.allocated_berth == "-1": 
             print("Not assigned to a berth yet")
@@ -105,7 +107,7 @@ def arrivalTime(oldTime):
     return arrivalTime
     
 def waitingCost():
-    cost = random.randint(Waiting_LB, Waiting_UB)
+    cost = int(random.gauss(waiting_cost_mean, waiting_cost_stdev))
     return cost
         
 def numberOfTEUs():

@@ -24,18 +24,18 @@ from copy import deepcopy
 from Ship import Ship
 from ContainerTerminal import ContainerTerminal
 
-time_horizon = 5
+time_horizon = 4
 max_time_horizon = 5
 operations_cost_hour = 200
-collect_training_data = True
-training_data_file_name = 'training_data.csv'
+collect_training_data = False
+training_data_file_name = 'training_data(large).csv'
 training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
-ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/'
-shipsFilename = 'set_of_ships_5.csv'
+ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Equal waiting costs/'
+shipsFilename = 'set_of_ships_1.csv'
 #==============================================================================
 # Don't change!
 #==============================================================================
-operations_cost = 24*operations_cost_hour
+daily_operations_cost = 24*operations_cost_hour
 costList = list()
 findInputTime = 0
 inputTime = 0
@@ -110,7 +110,7 @@ def updateParameters(u,v):
     for b in berths:
         if b==j:
             z[b]=max(lastX[b], u.arrival_time)
-            y[b] = u.operation_time
+            y[b] = u.operating_time
             x[b] = z[b]+y[b]/v[b]
         else:
             if lastX[j]>lastZ[b]:
@@ -159,7 +159,7 @@ def predictCost(S,v):
     for counter, ship in enumerate(S):
         j = min(lastX_copy, key = lastX_copy.get)
         starting_time = max(lastX_copy[j], ship.arrival_time)
-        costClass = predictCostClass(ship, v[j], starting_time, operations_cost)
+        costClass = predictCostClass(ship, v[j], starting_time, daily_operations_cost)
         costDict[counter]= costClass.total_cost
         lastX_copy[j] = costClass.finishing_time
     total_cost = sum(costDict.values())
@@ -188,15 +188,14 @@ def findUandV(QCList):
     
 def realCost():
     for ship in u_k:
-        for i in range(len(k_k)):
-            if k_k[i] > ship.starting_time and k_k[i]<=ship.finishing_time:
-                time = k_k[i]-k_k[i-1]
-                berth = ship.allocated_berth
-                ship.cost_for_operation+=time*v_k[i][berth]*operations_cost
-        ship.cost_for_waiting = (ship.finishing_time - ship.arrival_time)*ship.waiting_cost
+        waiting_time = ship.finishing_time - ship.arrival_time
+        waiting_cost = waiting_time*ship.waiting_cost
+        ship.total_waiting_cost = waiting_cost
+        operating_cost = ship.operating_time*daily_operations_cost
+        ship.total_operating_cost = operating_cost
         
-    total_operating_cost = sum([ship.cost_for_operation for ship in u_k])
-    total_waiting_cost = sum([ship.cost_for_waiting for ship in u_k])
+    total_operating_cost = sum([ship.total_operating_cost for ship in u_k])
+    total_waiting_cost = sum([ship.total_waiting_cost for ship in u_k])
     total_cost = total_operating_cost + total_waiting_cost
     return total_cost
 
@@ -276,18 +275,12 @@ def main():
             condition=False
     total_cost = realCost()
     totalTime = time.time()-starttime
-    print("Total cost: \t", totalCost)
-    print("Calculation time: ", totalTime)
-    print("\t Time to calculate QC sequences: ", sequencesTime)
-    print("\t Time to calculate inputs: \t", inputTime)
-    print("\t Time to update parameters: \t", updateTime)
-    times = {"totalTime": totalTime, "sequencesTime": sequencesTime, "inputTime": inputTime, "updateTime": updateTime }
     if collect_training_data == True:
         writeTrainingDataCSV()
-    return total_cost
+    #return total_cost
     
 def calculateTrainingData():
-    for i in range(1,11):
+    for i in range(1,1001):
         filename = 'set_of_ships_{0}.csv'.format(i)
         ships = createShips(filename)
         j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
