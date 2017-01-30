@@ -22,9 +22,9 @@ import math
 #==============================================================================
 load_type = 1 #reduced = 1, normal = 2, heavy = 3
 number_of_ships = 50
-nameOfFile = 'ships_bayu.csv'
+nameOfFile = 'test.csv'
 
-path = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/'
+path = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Large Horizon'
 pathOfNames = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Ship_names.csv'
 waiting_cost_mean = 3600
 waiting_cost_stdev = 300
@@ -104,6 +104,7 @@ def arrivalTime(oldTime):
     sigma = math.sqrt(math.log(v/(m**2)+1))
     interArrivalTime = np.random.lognormal(mu,sigma)
     arrivalTime = oldTime+interArrivalTime
+    arrivalTime = round(arrivalTime,2)
     return arrivalTime
     
 def waitingCost():
@@ -138,7 +139,7 @@ def saveShipsToCSV(ships, filename):
     for ship in ships:
         shipNames.append(ship.name)
         shipsArrivalTime.append(ship.arrival_time)
-        shipsTEU.append(ship.numberOfTEUs)
+        shipsTEU.append(ship.TEU)
         shipsWaitingcost.append(ship.waiting_cost)
     
     dataframe = pd.DataFrame(

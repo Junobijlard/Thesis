@@ -24,13 +24,13 @@ from copy import deepcopy
 from Ship import Ship
 from ContainerTerminal import ContainerTerminal
 
-time_horizon = 4
-max_time_horizon = 5
+time_horizon = 8
+max_time_horizon = 8
 operations_cost_hour = 200
-collect_training_data = False
-training_data_file_name = 'training_data(large).csv'
+collect_training_data = True
+training_data_file_name = 'training_data-large-mixed_horizons.csv'
 training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
-ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Equal waiting costs/'
+ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Large Horizon'
 shipsFilename = 'set_of_ships_1.csv'
 #==============================================================================
 # Don't change!
@@ -41,6 +41,8 @@ findInputTime = 0
 inputTime = 0
 timeSequences = 0
 training_data = []
+
+dataset = pd.read_csv(ships_data_folder+shipsFilename)
 
 def makeList(number):
     listname = list()
@@ -280,9 +282,10 @@ def main():
     #return total_cost
     
 def calculateTrainingData():
-    for i in range(1,1001):
+    for i in range(1,201):
         filename = 'set_of_ships_{0}.csv'.format(i)
         ships = createShips(filename)
         j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
         berthDict = {berth:[] for berth in berths}
         main()
+        print(i)
