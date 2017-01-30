@@ -24,11 +24,11 @@ from copy import deepcopy
 from Ship import Ship
 from ContainerTerminal import ContainerTerminal
 
-time_horizon = 8
-max_time_horizon = 8
+time_horizon = 5
+max_time_horizon = 5
 operations_cost_hour = 200
-collect_training_data = True
-training_data_file_name = 'training_data-large-mixed_horizons.csv'
+collect_training_data = False
+training_data_file_name = 'training_data-NEW.csv'
 training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
 ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Large Horizon'
 shipsFilename = 'set_of_ships_1.csv'
@@ -182,6 +182,7 @@ def findUandV(QCList):
         training_data_to_append = {}
         training_data_to_append['x'] = x_k[-1]
         training_data_to_append['S'] = S
+        training_data_to_append['current v']=v_k[-1]
         training_data_to_append['u'] = u
         training_data_to_append['v'] = v
         global training_data
@@ -213,6 +214,9 @@ def writeTrainingDataCSV(filename = training_data_file_name, path = training_dat
         columns.append(name1)
         columns.append(name2)
         columns.append(name3)
+        
+    for berth in berths:
+        columns.append('Current V {0}'.format(berth))
     columns.append('U')
     
     for berth in berths:
@@ -222,6 +226,7 @@ def writeTrainingDataCSV(filename = training_data_file_name, path = training_dat
     for line in range(len(training_data)):
         x = training_data[line]['x']
         S = training_data[line]['S']
+        currentV = training_data[line]['current v']
         u = training_data[line]['u']
         v = training_data[line]['v']
         
@@ -230,9 +235,10 @@ def writeTrainingDataCSV(filename = training_data_file_name, path = training_dat
         for i in range(max_time_horizon-len(S)):
             S_data.append([0,0,0])
         S_data = list(chain(*S_data))
+        currentV_data = list(currentV.values())
         u_data = [S.index(u)]
         v_data = list(v.values())
-        total_data = [x_data, S_data, u_data, v_data]
+        total_data = [x_data, S_data, currentV_data, u_data, v_data]
         total_data = list(chain(*total_data))
         total_data_dictionary = dict(zip(columns, total_data))
         all_data.append(total_data_dictionary)

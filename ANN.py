@@ -40,7 +40,7 @@ from sklearn.grid_search import GridSearchCV
 #==============================================================================
 # PARAMETERS
 #==============================================================================
-training_data = 'training_data-mixed_horizons.csv'
+training_data = 'training_data-NEW.csv'
 training_data_path = '/Users/juno/Desktop/Scriptie/Python/Training data/'
 number_of_ships = 5
 num_hidden_layers = 2
@@ -61,14 +61,16 @@ def preprocessData1TimeHorizon(test_size = test_size):
     standardscaler = StandardScaler()
     X = standardscaler.fit_transform(X) #Scales values of X 
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = test_size, random_state = 0)
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, standardscaler
     
 def preprocessData(test_size = test_size):
     dataset = pd.read_csv(training_data_path+training_data)
     dataset = dataset.sample(n=10000)
-    allVandU = [i for i in dataset.columns if 'V' in i or 'U' in i]
-    allShipsandX = [i for i in dataset.columns if 'Ship' in i or 'X' in i]
-    X = dataset.drop(allVandU, axis = 1).values
+    allVandU = [i for i in dataset.columns if 'V' in i and 'Current' not in i or 'U' in i]
+    allShipsandX = [i for i in dataset.columns if 'Ship' in i or 'X' in i or 'Current' in i]
+    X = dataset.drop(allVandU, axis = 1)
+    X = X.drop('Current V 1', axis = 1)
+    X = X.values
     y = dataset.drop(allShipsandX, axis = 1)
     y = y.drop('V 1', axis = 1).values #deze regel verwijderen en .values bij regel hierboven toevoegen
     onehotencoder = OneHotEncoder()
@@ -76,7 +78,7 @@ def preprocessData(test_size = test_size):
     standardscaler = StandardScaler()
     X = standardscaler.fit_transform(X) #Scales values of X 
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = test_size, random_state = 0)
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, standardscaler
 
 
 def buildANN(X_train, X_test, y_train, y_test,num_hidden_layers =num_hidden_layers, num_nodes = num_nodes):
@@ -111,11 +113,10 @@ def findAccuracy(y_pred, y_test, number_of_ships = number_of_ships):
     return ship_accuracy, QC_accuracy
     
 def main():
-    X_train, X_test, y_train, y_test = preprocessData()
-    #X_train, X_test, y_train, y_test = preprocessData1TimeHorizon()
+    X_train, X_test, y_train, y_test, standardscaler = preprocessData()
     starttime = time.time()
     ANN = buildANN(X_train, X_test, y_train, y_test)
     y_pred = ANN.predict(X_test)
     ship_accuracy, QC_accuracy = findAccuracy(y_pred, y_test)
     print(time.time()-starttime)
-    return ship_accuracy, QC_accuracy
+    return ANN, standardscaler,ship_accuracy, QC_accuracy
