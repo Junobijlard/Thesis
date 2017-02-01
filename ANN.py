@@ -36,6 +36,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.decomposition import PCA
 from sklearn.grid_search import GridSearchCV
+from Ship import Ship
+from ContainerTerminal import ContainerTerminal
 
 #==============================================================================
 # PARAMETERS
@@ -46,26 +48,26 @@ number_of_ships = 5
 num_hidden_layers = 2
 num_nodes = 20
 test_size = 0.2
+QCs = 7
 #importing the dataset
 
-def preprocessData1TimeHorizon(test_size = test_size):
-    dataset = pd.read_csv(training_data_path+training_data)
-    dataset = dataset[dataset['Ship 5 arrival time']!=0]
-    allVandU = [i for i in dataset.columns if 'V' in i or 'U' in i]
-    allShipsandX = [i for i in dataset.columns if 'Ship' in i or 'X' in i]
-    X = dataset.drop(allVandU, axis = 1).values
-    y = dataset.drop(allShipsandX, axis = 1)
-    y = y.drop('V 1', axis = 1).values #deze regel verwijderen en .values bij regel hierboven toevoegen
-    onehotencoder = OneHotEncoder()
-    y = onehotencoder.fit_transform(y).toarray() #Transforms y to binary array
-    standardscaler = StandardScaler()
-    X = standardscaler.fit_transform(X) #Scales values of X 
-    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = test_size, random_state = 0)
-    return X_train, X_test, y_train, y_test, standardscaler
+def makeList(number):
+    listname = list()
+    for i in range(number):
+        listname.append(i)
+    return listname
     
-def preprocessData(test_size = test_size):
+def fitOneHotEncoder(QCs):
+    QCListOHE = [[QC]for QC in range(1,QCs)]
+    onehotencoder = OneHotEncoder()
+    onehotencoder.fit_transform(QCListOHE)    
+    return onehotencoder
+    
+def preprocessData(test_size = test_size, sample = False):
     dataset = pd.read_csv(training_data_path+training_data)
-    dataset = dataset.sample(n=10000)
+    if sample:
+        dataset = dataset.sample(n = sample)
+    berths = makeList(terminal.QC_number)
     allVandU = [i for i in dataset.columns if 'V' in i and 'Current' not in i or 'U' in i]
     allShipsandX = [i for i in dataset.columns if 'Ship' in i or 'X' in i or 'Current' in i]
     X = dataset.drop(allVandU, axis = 1)
@@ -73,8 +75,8 @@ def preprocessData(test_size = test_size):
     X = X.values
     y = dataset.drop(allShipsandX, axis = 1)
     y = y.drop('V 1', axis = 1).values #deze regel verwijderen en .values bij regel hierboven toevoegen
-    onehotencoder = OneHotEncoder()
-    y = onehotencoder.fit_transform(y).toarray() #Transforms y to binary array
+    onehotencoder = fitOneHotEncoder()
+    y = onehotencoder.transform(y).toarray() #Transforms y to binary array
     standardscaler = StandardScaler()
     X = standardscaler.fit_transform(X) #Scales values of X 
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = test_size, random_state = 0)

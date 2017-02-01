@@ -24,10 +24,10 @@ from copy import deepcopy
 from Ship import Ship
 from ContainerTerminal import ContainerTerminal
 
-time_horizon = 5
-max_time_horizon = 5
+time_horizon = 2
+max_time_horizon = 8
 operations_cost_hour = 200
-collect_training_data = False
+collect_training_data = True
 training_data_file_name = 'training_data-NEW.csv'
 training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
 ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Large Horizon'
@@ -287,11 +287,30 @@ def main():
         writeTrainingDataCSV()
     #return total_cost
     
-def calculateTrainingData():
-    for i in range(1,201):
-        filename = 'set_of_ships_{0}.csv'.format(i)
-        ships = createShips(filename)
-        j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
-        berthDict = {berth:[] for berth in berths}
-        main()
-        print(i)
+"""
+for i in range(1,201):
+    filename = 'set_of_ships_{0}.csv'.format(i)
+    ships = createShips(filename)
+    j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
+    berthDict = {berth:[] for berth in berths}
+    main()
+    print(i)
+time_horizon = 7
+for i in rang(201,401):
+    filename = 'set_of_ships_{0}.csv'.format(i)
+    ships = createShips(filename)
+    j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
+    berthDict = {berth:[] for berth in berths}
+    main()
+    print(i)
+   """     
+
+for i in range(1201,1401):
+    filename = 'set_of_ships_{0}.csv'.format(i)
+    ships = createShips(filename)
+    j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
+    berthDict = {berth:[] for berth in berths}
+    main()
+    print(i)
+    
+    
