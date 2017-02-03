@@ -6,9 +6,6 @@ Created on Fri Jan 20 18:19:40 2017
 @author: juno
 """
 
-from os import chdir
-chdir("/Users/Juno/Desktop/Scriptie/Python")
-
 import os
 import random
 import time
@@ -27,9 +24,8 @@ from ContainerTerminal import ContainerTerminal
 time_horizon = 2
 max_time_horizon = 8
 operations_cost_hour = 200
-collect_training_data = True
-training_data_file_name = 'training_data-NEW.csv'
-training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/'
+collect_training_data = False
+training_data_path = '/Users/Juno/Desktop/Scriptie/Python/Training data/training_data'
 ships_data_folder = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Large Horizon'
 shipsFilename = 'set_of_ships_1.csv'
 #==============================================================================
@@ -202,7 +198,7 @@ def realCost():
     total_cost = total_operating_cost + total_waiting_cost
     return total_cost
 
-def writeTrainingDataCSV(filename = training_data_file_name, path = training_data_path, training_data = training_data, max_time_horizon = max_time_horizon):
+def writeTrainingDataCSV(training_data_path = training_data_path, training_data = training_data, max_time_horizon = max_time_horizon):
     columns = []
     for berth in berths:
         columns.append('X {0}'.format(berth))
@@ -242,12 +238,11 @@ def writeTrainingDataCSV(filename = training_data_file_name, path = training_dat
         total_data = list(chain(*total_data))
         total_data_dictionary = dict(zip(columns, total_data))
         all_data.append(total_data_dictionary)
-    training_data_dataframe = pd.DataFrame(all_data)
-    pathOfTrainingFile = '{0}{1}'.format(path, filename)
-    if os.path.isfile(pathOfTrainingFile):
-        training_data_dataframe.to_csv(pathOfTrainingFile, index = False, mode = 'a', header = False)
+    
+    if os.path.isfile(training_data_path):
+        training_data_dataframe.to_csv(training_data_path, index = False, mode = 'a', header = False)
     else:
-        training_data_dataframe.to_csv(pathOfTrainingFile, index = False)
+        training_data_dataframe.to_csv(training_data_path, index = False)
     
 def main():
     starttime = time.time()
@@ -285,32 +280,15 @@ def main():
     totalTime = time.time()-starttime
     if collect_training_data == True:
         writeTrainingDataCSV()
-    #return total_cost
-    
-"""
-for i in range(1,201):
-    filename = 'set_of_ships_{0}.csv'.format(i)
-    ships = createShips(filename)
-    j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
-    berthDict = {berth:[] for berth in berths}
-    main()
-    print(i)
-time_horizon = 7
-for i in rang(201,401):
-    filename = 'set_of_ships_{0}.csv'.format(i)
-    ships = createShips(filename)
-    j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
-    berthDict = {berth:[] for berth in berths}
-    main()
-    print(i)
-   """     
+    #return total_cost 
 
-for i in range(1201,1401):
-    filename = 'set_of_ships_{0}.csv'.format(i)
-    ships = createShips(filename)
-    j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
-    berthDict = {berth:[] for berth in berths}
-    main()
-    print(i)
+if collect_training_data:
+    for i in range(1201,1401):
+        filename = 'set_of_ships_{0}.csv'.format(i)
+        ships = createShips(filename)
+        j_k, k_k, u_k, v_k, x_k, y_k, z_k = createJKUVXYZ(berths)
+        berthDict = {berth:[] for berth in berths}
+        main()
+        print(i)
     
     
