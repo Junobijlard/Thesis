@@ -24,7 +24,8 @@ load_type = 1 #reduced = 1, normal = 2, heavy = 3
 number_of_ships = 50
 nameOfFile = 'test.csv'
 
-path = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Large Horizon'
+path = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/'
+mapName = 'equal/'
 pathOfNames = '/Users/Juno/Desktop/Scriptie/Python/Ship configurations/Ship_names.csv'
 waiting_cost_mean = 3600
 waiting_cost_stdev = 300
@@ -32,8 +33,6 @@ waiting_cost_stdev = 300
 #==============================================================================
 # CODE
 #==============================================================================
-Waiting_LB = 3000
-Waiting_UB = 4000
 
 if load_type == 1:
     m = 6
@@ -107,7 +106,14 @@ def arrivalTime(oldTime):
     arrivalTime = round(arrivalTime,2)
     return arrivalTime
     
-def waitingCost():
+def waitingCost(scenario):
+    if scenario == 1:
+        cost = 3600
+        return cost
+    elif scenario == 2:
+        waiting_cost_stdev = 360
+    elif scenario == 3:
+        waiting_cost_stdev = 900
     cost = int(random.gauss(waiting_cost_mean, waiting_cost_stdev))
     return cost
         
@@ -120,18 +126,24 @@ def pickName():
     return name
 
 def createShips():
-    ships = list()
+    ships1 = list()
+    ships2 = list()
+    ships3 = list()
     oldArrivalTime = 0
     for i in range(number_of_ships):
         name = pickName()
         TEUs = numberOfTEUs()
         arrival_time = arrivalTime(oldArrivalTime)
         oldArrivalTime = arrival_time
-        waiting_cost = waitingCost()
-        ships.append(Ship(i, name, arrival_time, TEUs, waiting_cost))
-    return ships
+        waiting_cost_1 = waitingCost(1)
+        waiting_cost_2 = waitingCost(2)
+        waiting_cost_3 = waitingCost(3)
+        ships1.append(Ship(i, name, arrival_time, TEUs, waiting_cost_1))
+        ships2.append(Ship(i, name, arrival_time, TEUs, waiting_cost_2))
+        ships3.append(Ship(i, name, arrival_time, TEUs, waiting_cost_3))
+    return ships1, ships2, ships3
 
-def saveShipsToCSV(ships, filename):
+def saveShipsToCSV(ships, mapName,filename):
     shipNames = list()
     shipsArrivalTime = list()
     shipsTEU = list()
@@ -149,14 +161,16 @@ def saveShipsToCSV(ships, filename):
                               'Waiting Cost': shipsWaitingcost
                               })
     dataframe = dataframe[['Name', 'Arrival Time', 'TEU', 'Waiting Cost']]
-    dataframe.to_csv(path+filename , index = False)
+    dataframe.to_csv(path+mapName+filename , index = False)
     
 def play(set_number):
     filename = 'set_of_ships_{0}.csv'.format(set_number)
-    ships = createShips()
-    saveShipsToCSV(ships, filename)
-    return ships
+    ships1, ships2, ships3 = createShips()
+    saveShipsToCSV(ships1, 'test_equal/' ,filename)
+    saveShipsToCSV(ships2, 'test_gaussian/',filename)
+    saveShipsToCSV(ships3, 'test_random/',filename)
+    return ships1, ships2, ships3
 
 if __name__ == "__main__":
-    ships = play(1)    
+    ships1, ships2, ships3 = play(1)    
 
